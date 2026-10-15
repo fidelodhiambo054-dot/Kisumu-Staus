@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kisumu Stays — discover short-stay accommodation across Kisumu, Kenya.">
+  <meta name="theme-color" content="#0f766e">
+  <title>Kisumu Stays | Find your stay in Kisumu</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏡%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="#home" aria-label="Kisumu Stays home">
+      <span class="brand-mark">🏡</span>
+      <span><strong>Kisumu</strong> Stays</span>
+    </a>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">☰</button>
+    <nav id="nav">
+      <a href="#stays">Find a stay</a>
+      <a href="#locations">Locations</a>
+      <a href="#how">How it works</a>
+      <a href="#owners">List your property</a>
+      <a href="#contact">Contact</a>
+      <a href="guest-dashboard.html">Dashboard previews</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" id="home">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <p class="eyebrow">SHORT STAYS • KISUMU, KENYA</p>
+        <h1>Find a place you'll feel at home.</h1>
+        <p class="hero-copy">Discover apartments, BnBs and guest stays across Kisumu — compare your options and contact hosts directly.</p>
+        <form class="search-panel" id="searchForm">
+          <label>
+            <span>Location</span>
+            <select id="locationFilter">
+              <option value="all">All Kisumu</option>
+            </select>
+          </label>
+          <label>
+            <span>Maximum price / night</span>
+            <input id="priceFilter" type="number" min="0" step="100" placeholder="e.g. 3000">
+          </label>
+          <label>
+            <span>Guests</span>
+            <input id="guestFilter" type="number" min="1" value="1">
+          </label>
+          <button class="btn btn-primary" type="submit">Search stays</button>
+        </form>
+        <div class="trust-row">
+          <span>✓ Verified listings</span>
+          <span>✓ Local Kisumu stays</span>
+          <span>✓ Direct host contact</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="stays">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">EXPLORE</p>
+          <h2>Popular stays</h2>
+        </div>
+        <span class="results-count" id="resultsCount"></span>
+      </div>
+      <div class="filters">
+        <button class="chip active" data-location="all">All</button>
+        <div id="locationChips"></div>
+      </div>
+      <div class="property-grid" id="propertyGrid"></div>
+      <div class="empty-state hidden" id="emptyState">
+        <div>🔎</div>
+        <h3>No stays match your search</h3>
+        <p>Try another location or increase your maximum price.</p>
+        <button class="btn btn-dark" id="resetSearch">Show all stays</button>
+      </div>
+    </section>
+
+    <section class="section soft" id="locations">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">KISUMU</p>
+          <h2>Explore by location</h2>
+        </div>
+      </div>
+      <div class="location-grid" id="locationCards"></div>
+    </section>
+
+    <section class="section" id="how">
+      <div class="center-heading">
+        <p class="eyebrow">SIMPLE BOOKING</p>
+        <h2>How Kisumu Stays works</h2>
+        <p>Start small, keep it local, and make finding accommodation easier.</p>
+      </div>
+      <div class="steps">
+        <article><span>01</span><h3>Search</h3><p>Choose a Kisumu location, budget and number of guests.</p></article>
+        <article><span>02</span><h3>Compare</h3><p>Check photos, amenities, prices and property information.</p></article>
+        <article><span>03</span><h3>Contact & book</h3><p>Send a booking request to the host through WhatsApp.</p></article>
+      </div>
+    </section>
+
+    <section class="owner-cta" id="owners">
+      <div>
+        <p class="eyebrow">FOR PROPERTY OWNERS</p>
+        <h2>Have a BnB or short-stay in Kisumu?</h2>
+        <p>Put your property in front of people searching for accommodation in Kisumu.</p>
+      </div>
+      <a class="btn btn-light" id="ownerWhatsApp" href="#" target="_blank" rel="noopener">List my property</a>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="contact-card">
+        <div>
+          <p class="eyebrow">CONTACT</p>
+          <h2>Need help finding a stay?</h2>
+          <p>Message Kisumu Stays and tell us your preferred location, dates and budget.</p>
+          <p class="contact-phone" id="contactPhone"></p>
+          <p class="small-note">This is our support contact number, not a payment PayBill/Till. Only approve an M-Pesa prompt that shows the correct merchant and confirmed amount.</p>
+        </div>
+        <a class="btn btn-primary" id="contactWhatsApp" href="#" target="_blank" rel="noopener">WhatsApp us</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <div>
+        <a class="brand footer-brand" href="#home"><span class="brand-mark">🏡</span><span><strong>Kisumu</strong> Stays</span></a>
+        <p id="footerTagline"></p>
+      </div>
+      <div class="footer-links">
+        <a href="#stays">Stays</a><a href="#owners">List property</a><a href="#contact">Contact</a>
+      <a href="guest-dashboard.html">Dashboard previews</a>
+        <a href="booking-terms.html">Booking terms</a><a href="privacy.html">Privacy</a>
+      </div>
+      <p class="copyright">© <span id="year"></span> Kisumu Stays. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <div class="modal hidden" id="propertyModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card">
+      <button class="modal-close" data-close-modal aria-label="Close">×</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

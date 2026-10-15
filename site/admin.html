@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+  <title>Operations | Kisumu Stays</title><link rel="stylesheet" href="styles.css">
+  <style>
+    .admin-main{max-width:1100px;margin:0 auto;padding:42px 5% 70px}.admin-intro{max-width:700px}.admin-login{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0}.admin-login input{flex:1;min-width:220px;border:1px solid var(--line);border-radius:8px;padding:12px}.admin-status{color:var(--muted);font-size:13px}.admin-status.error{color:#a52828}.admin-status.success{color:#126b4d}.admin-list{display:grid;gap:16px;margin-top:24px}.admin-card{border:1px solid var(--line);border-radius:14px;padding:20px;background:white}.admin-card h2{font-size:20px;margin:0 0 5px}.admin-meta{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}.admin-meta div{background:var(--soft);padding:10px;border-radius:8px;overflow-wrap:anywhere}.admin-meta small{display:block;color:var(--muted);font-size:11px}.admin-meta strong{font-size:13px}.admin-actions{display:flex;gap:9px;flex-wrap:wrap}.admin-actions button{border:0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer}.admin-actions button:disabled{opacity:.5;cursor:not-allowed}.admin-confirm{background:var(--primary);color:#fff}.admin-pay{background:#17211f;color:white}.admin-cancel{background:#f6e9e9;color:#8e2525}.admin-note{background:#fff7e5;border:1px solid #f1dba6;border-radius:10px;padding:13px;font-size:13px;color:#634b12}.admin-empty{padding:35px;text-align:center;background:var(--soft);border-radius:12px;color:var(--muted)}
+    @media(max-width:650px){.admin-meta{grid-template-columns:1fr 1fr}.admin-login{flex-direction:column}.admin-login input{min-width:0}}
+  </style>
+</head>
+<body>
+  <header class="site-header"><a class="brand" href="index.html"><span class="brand-mark">🏡</span><span><strong>Kisumu</strong> Stays <small style="display:block;font-size:10px;color:#65716e">Operations</small></span></a><nav><a href="index.html">Public website</a></nav></header>
+  <main class="admin-main">
+    <div class="admin-intro"><p class="eyebrow">PRIVATE OPERATIONS</p><h1>Booking requests</h1><p>Use this page only as the authorized operator. Confirm availability with the host first. The M-Pesa prompt is sent only after you confirm a booking.</p></div>
+    <div class="admin-note"><strong>Security:</strong> This page contains no embedded admin secret. Enter the access token configured in Netlify. It is held only in this page's memory and is not saved to browser storage. Never share it or enter it on a public/shared device.</div>
+    <form class="admin-login" id="adminLogin"><input type="password" id="adminToken" autocomplete="current-password" placeholder="Admin access token" required aria-label="Admin access token"><button class="btn btn-primary" type="submit">Load requests</button><button class="btn btn-dark" type="button" id="clearToken">Lock page</button></form>
+    <p id="adminStatus" class="admin-status" role="status" aria-live="polite">Enter your admin token to load bookings.</p>
+    <section id="bookingList" class="admin-list" aria-label="Booking request list"></section>
+  </main>
+  <script>
+    let accessToken = "";
+    const statusEl = document.getElementById("adminStatus");
+    const listEl = document.getElementById("bookingList");
+    const fmt = n => `KSh ${Number(n).toLocaleString("en-KE")}`;
+    const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+    function setStatus(message, type="") { statusEl.textContent = message; statusEl.className = `admin-status ${type}`; }
+    async function api(url, options={}) {
+      const response = await fetch(url, { ...options, headers: { "Content-Type":"application/json", "Authorization":`Bearer ${accessToken}`, ...(options.headers || {}) }, cache:"no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "Request failed.");
+      return data;
+    }
+    function bookingCard(b) {
+      const card = document.createElement("article"); card.className = "admin-card";
+      const paid = b.payment_status === "paid";
+      const canPay = b.booking_status === "confirmed" && !["pending","verification_pending","paid"].includes(b.payment_status);
+      const canVerify = ["pending", "verification_pending"].includes(b.payment_status);
+      card.innerHTML = `<h2>${esc(b.property_name)}</h2><p class="muted">Reference: ${esc(b.id)} · Received ${esc(new Date(b.created_at).toLocaleString())}</p>
+        <div class="admin-meta">
+          <div><small>Guest</small><strong>${esc(b.guest_name)}</strong></div>
+          <div><small>Guest phone</small><strong>${esc(b.guest_phone)}</strong></div>
+          <div><small>Dates</small><strong>${esc(b.check_in)} → ${esc(b.check_out)} (${esc(b.nights)} nights)</strong></div>
+          <div><small>Guests</small><strong>${esc(b.guests)}</strong></div>
+          <div><small>Total</small><strong>${fmt(b.total_amount)}</strong></div>
+          <div><small>10% commission (recorded)</small><strong>${fmt(b.commission_amount)}</strong></div>
+          <div><small>Booking status</small><strong>${esc(b.booking_status)}</strong></div>
+          <div><small>Payment status</small><strong>${esc(b.payment_status)}</strong></div>
+          <div><small>M-Pesa receipt</small><strong>${esc(b.mpesa_receipt || "Not recorded")}</strong></div>
+        </div>
+        ${b.payment_note ? `<p class="admin-status error">Payment note: ${esc(b.payment_note)}</p>` : ""}
+        <div class="admin-actions">
+          <button class="admin-confirm" data-action="confirm" ${b.booking_status === "confirmed" || paid ? "disabled" : ""}>Confirm availability</button>
+          <button class="admin-pay" data-action="pay" ${canPay ? "" : "disabled"}>Send M-Pesa prompt</button>
+          <button class="admin-confirm" data-action="verify" ${canVerify ? "" : "disabled"}>Verify payment status</button>
+          <button class="admin-cancel" data-action="cancel" ${paid || ["pending","verification_pending"].includes(b.payment_status) || b.booking_status === "cancelled" ? "disabled" : ""}>Cancel request</button>
+        </div>`;
+      card.querySelectorAll("[data-action]").forEach(btn => btn.addEventListener("click", async () => {
+        const action = btn.dataset.action;
+        if (action === "pay" && !confirm(`Send an official M-Pesa STK prompt for ${fmt(b.total_amount)} to ${b.guest_phone}? Confirm you have checked availability and the recipient/business details.`)) return;
+        if (action === "verify" && !confirm("Check this transaction's status with Safaricom? Do not issue another prompt while the transaction is pending.")) return;
+        btn.disabled = true; setStatus(action === "pay" ? "Requesting M-Pesa prompt…" : action === "verify" ? "Checking with Safaricom…" : "Updating booking…");
+        try {
+          if (action === "pay") await api("/.netlify/functions/admin-payment", { method:"POST", body:JSON.stringify({ bookingId:b.id }) });
+          else if (action === "verify") await api("/.netlify/functions/admin-verify-payment", { method:"POST", body:JSON.stringify({ bookingId:b.id }) });
+          else await api("/.netlify/functions/admin-bookings", { method:"POST", body:JSON.stringify({ bookingId:b.id, action }) });
+          setStatus(action === "pay" ? "M-Pesa prompt requested. Ask the guest to verify the merchant and amount before entering their PIN." : action === "verify" ? "Payment status check completed; review the updated status below." : `Booking ${action === "confirm" ? "confirmed" : "cancelled"}.`, "success");
+          await loadBookings();
+        } catch (error) { setStatus(error.message, "error"); btn.disabled = false; }
+      }));
+      return card;
+    }
+    async function loadBookings() {
+      listEl.replaceChildren(); setStatus("Loading booking requests…");
+      try {
+        const result = await api("/.netlify/functions/admin-bookings");
+        if (!result.bookings.length) { listEl.innerHTML = '<div class="admin-empty">No booking requests yet.</div>'; setStatus("Loaded successfully.", "success"); return; }
+        result.bookings.forEach(b => listEl.appendChild(bookingCard(b)));
+        setStatus(`Loaded ${result.bookings.length} booking request(s).`, "success");
+      } catch (error) { setStatus(error.message, "error"); }
+    }
+    document.getElementById("adminLogin").addEventListener("submit", async event => { event.preventDefault(); accessToken = document.getElementById("adminToken").value.trim(); await loadBookings(); });
+    document.getElementById("clearToken").addEventListener("click", () => { accessToken = ""; document.getElementById("adminToken").value = ""; listEl.replaceChildren(); setStatus("Locked. Enter the admin token to continue."); });
+  </script>
+</body>
+</html>
